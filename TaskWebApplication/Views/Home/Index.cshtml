@@ -2,30 +2,107 @@
     ViewBag.Title = "Home Page";
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
+<br/>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>
+<div id="grid"></div>
+
+<script>
+    $(document).ready(function () {
+        function reloadGrid() {
+            $('#grid').data('kendoGrid').dataSource.read();
+        };
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "http://localhost:58936/api/Organizations",
+                    type: "GET"
+                },
+                update: {
+                    url: "http://localhost:58936/api/Organizations",
+                    type: "PUT",
+                    complete: reloadGrid
+                },
+                create: {
+                    url: "http://localhost:58936/api/Organizations",
+                    type: "POST",
+                    complete: reloadGrid
+                },
+                destroy: {
+                    url: "http://localhost:58936/api/Organizations",
+                    type: "DELETE",
+                    complete: reloadGrid
+                }
+            },
+            pageSize: 20,
+            batch: false,
+            schema: {
+                model: {
+                    id: "Id",
+                    fields: {
+                        Id: { editable: false, type: "string" },
+                        Name: { type: "string" },
+                        Account: { type: "string" },
+                        Activity: { type: "string" },
+                        ActivityTypeId: { type: "number" }
+                    }
+                }
+            }
+        });
+
+        $('#grid').kendoGrid({
+            dataSource: dataSource,
+            height: 550,
+            groupable: false,
+            sortable: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            toolbar: ["create"],
+            columns: [
+                {
+                    editable: false,
+                    title: "Id",
+                    field: "Id"
+                },
+                {
+                    title: "Name",
+                    field: "Name"
+                },
+                {
+                    title: "Account",
+                    field: "Account"
+                },
+                {
+                    title: "Activity",
+                    template: "#: Activity #",
+                    field: "ActivityTypeId",
+                    editor: ddlEditor
+                },
+                {
+                    title: "Actions",
+                    command: [ "edit", "destroy" ]
+                }
+            ],
+            editable: "popup"
+        });
+
+        function ddlEditor(container, options) {
+            $('<input required name="' + options.field + '"/>')
+                .appendTo(container)
+                .kendoDropDownList({
+                    autoBind: true,
+                    dataTextField: "Name",
+                    dataValueField: "Id",
+                    dataSource: {
+                        type: "GET",
+                        transport: {
+                            read: "http://localhost:58936/api/ActivityType"
+                        }
+                    }
+                });
+        }
+    });
+</script>
